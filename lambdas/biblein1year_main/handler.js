@@ -20,6 +20,7 @@ Process:
 
 const redis = require("redis");
 
+const Instagram = require("./clients/instagram");
 const config = require("./config.json");
 const tools = require("./tools");
 
@@ -65,13 +66,15 @@ async function getReadingsForDate(date) {
     });
 }
 
-async function doInstaPost(item) {
+async function doInstaPost(item, testMode) {
     let longRef = await tools.elongateReference(item.ref);
     if ("image_url" in item) {
         var image = item.image_url;
     } else {
         throw new Error(`No image found for ref ${longRef}`);
     }
+    let verses = tools.getVerses(item.ref);
+    let url = tools.getUrl(longRef);
     let hashtags = [
         "#Bible",
         "#BibleInOneYear",
@@ -81,32 +84,48 @@ async function doInstaPost(item) {
     if ("hashtag" in item) {
         hashtags.unshift(item.hashtag);
     }
-    let url = tools.getUrl(item.ref);
-    let message = [
-        longRef,
-        url,
-        hashtags.join(" "),
-    ].join("\n");
-    console.log(image);
-    console.log(message);
-    console.log("---");
+    if (testMode) {
+        let message = [
+            (await verses).next().value,
+            `Read more: ${url}`,
+            hashtags.join(" "),
+        ].join("\n\n");
+        console.log(image);
+        console.log(message);
+        console.log("---");
+    } else {
+        await Instagram.post(image, verses, url, hashtags);
+    }
 }
 
-async function handler() {
-    var today = new Date("2018-01-05T12:34:56"); // FIXME use today's date
+async function handler(testMode) {
+    var today = new Date();
+    let counter = 0;
     for (let date of await getRelevantDates(today)) {
         for (let item of await getReadingsForDate(date)) {
-            await doInstaPost(item);
+            await doInstaPost(item, testMode);
+            counter += 1;
         }
     };
+    if (!testMode) {
+        const redisClient = redis.createClient(config.redis_url);
+        try {
+            await tools._p(cb => redisClient.set("last_updated_date", today.toString(), cb));
+        } finally {
+            redisClient.quit();
+        }
+    }
+    return `Posted ${counter} times`;
 }
 
 exports.handler = function(event, context, cb) {
-    handler().then(msg => cb(null, msg), err => cb(err));
+    handler(event.testMode || false).then(msg => cb(null, msg), err => cb(err));
 };
 
 if (!module.parent) {
-    var ev = {};
+    var ev = {
+        testMode: process.argv.includes("--test"),
+    };
     exports.handler(ev, null, (err, msg) => {
         if (err) {
             console.error(err);

@@ -1,5 +1,8 @@
 const DynamoDB = require("aws-sdk").DynamoDB;
+const htmlToText = require("html-to-text");
+const request = require("request-promise-native");
 const marshaler = require("dynamodb-marshaler");
+const quotation = require("quotation");
 
 const marshalItem = marshaler.marshalItem;
 const unmarshalItem = marshaler.unmarshalItem;
@@ -41,6 +44,20 @@ function getUrl(ref) {
     return URL_PATTERN + encodeURIComponent(ref);
 }
 
+async function getVerses(ref) {
+    /* Call the bible.org API to fetch the verses */
+    let url = `http://labs.bible.org/api/?formatting=full&type=json&passage=${ref}`;
+    var response = await request({
+        url: url,
+        json: true,
+    });
+    return (function*() {
+        for (let verse of response) {
+            yield quotation(htmlToText.fromString(verse.text, {wordwrap: null}));
+        }
+    })();
+}
+
 module.exports = {
     marshalItem: marshalItem,
     unmarshalItem: unmarshalItem,
@@ -48,4 +65,5 @@ module.exports = {
     "_p": _p,
     elongateReference: elongateReference,
     getUrl: getUrl,
+    getVerses: getVerses,
 };

@@ -15,7 +15,12 @@
   "license": "ISC",
   "dependencies": {
     "dynamodb-marshaler": "^2.0.0",
+    "html-to-text": "^3.3.0",
     "instagram-private-api": "^0.6.7",
-    "redis": "^2.8.0"
-  }
+    "quotation": "^1.1.0",
+    "redis": "^2.8.0",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5"
+  },
+  "devDependencies": {}
 }
