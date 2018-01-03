@@ -1,15 +1,32 @@
+const fs = require("fs");
 const path = require("path");
 
 const Client = require("instagram-private-api").V1;
 const request = require("request");
+const S3 = require("aws-sdk").S3;
 
 const config = require("../config.json").instagram;
 
+const cookieDir = path.join(__dirname, "../cookies/");
+const cookiePath = path.join(cookieDir, `${config.username}.json`);
+
 class Instagram {
+    async loadCookies() {
+        var s3 = new S3();
+        var response = s3.getObject({
+            Bucket: config.private_bucket_name,
+            Key: `${config.username}.json`,
+        }).promise();
+        try {
+            await fs.mkdir(cookieDir);
+        } catch (e) {}
+        await fs.writeFile(cookiePath, response.Body);
+    }
+
     constructor() {
         const device = new Client.Device(config.username);
-        const storage = new Client.CookieFileStorage(path.join(__dirname, `../cookies/${config.username}.json`));
-        this.session = Client.Session.create(device, storage, config.username, config.password);
+        const storage = new Client.CookieFileStorage(cookiePath);
+        this.session = this.loadCookies().then(Client.Session.create(device, storage, config.username, config.password));
     }
 
     async post(imageUrl, verses, url, hashtags) {
@@ -35,6 +52,16 @@ class Instagram {
             this.instance = new this();
         }
         return this.instance.post(imageUrl, verses, url, hashtags);
+    }
+
+    static saveCookies() {
+        var s3 = new S3();
+        var fileStream = fs.createReadStream(cookiePath);
+        return s3.putObject({
+            Bucket: config.private_bucket_name,
+            Key: `${config.username}.json`,
+            body: fileStream,
+        }).promise();
     }
 }
 Instagram.instance = null;

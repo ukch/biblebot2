@@ -96,6 +96,7 @@ async function doInstaPost(item, testMode) {
     } else {
         await Instagram.post(image, verses, url, hashtags);
     }
+    await Instagram.saveCookies();
 }
 
 async function handler(testMode) {
