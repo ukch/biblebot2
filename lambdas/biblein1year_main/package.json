@@ -1,26 +1,48 @@
 {
-  "name": "biblebot2",
-  "version": "1.0.0",
-  "description": "Bible in One Year - posts to Instagram and Twitter",
-  "main": "handler.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "instagram",
-    "twitter",
-    "bible"
-  ],
-  "author": "Joel Cross",
-  "license": "ISC",
-  "dependencies": {
-    "dynamodb-marshaler": "^2.0.0",
-    "html-to-text": "^3.3.0",
-    "instagram-private-api": "^0.6.7",
-    "quotation": "^1.1.0",
-    "redis": "^2.8.0",
-    "request": "^2.83.0",
-    "request-promise-native": "^1.0.5"
-  },
-  "devDependencies": {}
+    "name": "biblebot2",
+    "version": "1.0.0",
+    "description": "Bible in One Year - posts to Instagram and Twitter",
+    "main": "handler.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "instagram",
+        "twitter",
+        "bible"
+    ],
+    "author": "Joel Cross",
+    "license": "ISC",
+    "dependencies": {
+        "dynamodb-marshaler": "^2.0.0",
+        "html-to-text": "^3.3.0",
+        "instagram-private-api": "^0.6.7",
+        "quotation": "^1.1.0",
+        "redis": "^2.8.0",
+        "request": "^2.83.0",
+        "request-promise-native": "^1.0.5"
+    },
+    "devDependencies": {
+        "babel-core": "^6.26.0",
+        "babel-loader": "^7.1.2",
+        "babel-preset-env": "^1.6.1",
+        "babel-preset-es2015": "^6.24.1",
+        "shebang-loader": "0.0.1",
+        "webpack": "^3.10.0",
+        "zip-webpack-plugin": "^2.1.0"
+    },
+    "babel": {
+        "presets": [
+            [
+                "env",
+                {
+                    "targets": {
+                        "node": [
+                            "6.10"
+                        ]
+                    }
+                }
+            ]
+        ]
+    }
 }
