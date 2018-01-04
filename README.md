@@ -20,12 +20,12 @@ This code assumes it will be ran on an AWS Lambda instance, using DynamoDB table
 8. Create a file `lambdas/biblein1year_main/config.json` in the following format:
 ```json
 {
-  "private_bucket_name": "[S3 bucket name from step 6]",
   "redis_url": "[Redis URL from step 7]",
   "instagram": {
     "username": "[Instagram username]",
     "password": "[Instagram password]",
-  },
+    "private_bucket_name": "[S3 bucket name from step 6]"
+  }
 }
 ```
 (Don't worry about storing the Instagram password in plain-text - after you have run the script for the first time, a cookie will be created and you can safely replace this with `null`.

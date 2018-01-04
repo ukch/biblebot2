@@ -96,7 +96,6 @@ async function doInstaPost(item, testMode) {
     } else {
         await Instagram.post(image, verses, url, hashtags);
     }
-    await Instagram.saveCookies();
 }
 
 async function handler(testMode) {
@@ -109,6 +108,7 @@ async function handler(testMode) {
         }
     };
     if (!testMode) {
+        await Instagram.saveCookies();
         const redisClient = redis.createClient(config.redis_url);
         try {
             await tools._p(cb => redisClient.set("last_updated_date", today.toString(), cb));
