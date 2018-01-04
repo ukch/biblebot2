@@ -29,6 +29,7 @@ This code assumes it will be ran on an AWS Lambda instance, using DynamoDB table
 }
 ```
 (Don't worry about storing the Instagram password in plain-text - after you have run the script for the first time, a cookie will be created and you can safely replace this with `null`.
+
 9. Cd into `lambdas/biblein1year_main/config.json`, run `npm install`, then run `webpack`. This should create a file `./dist/lambda.zip`
 10. Create your Lambda. When asked for the code, upload the zip file from step 9, and set the handler path to `handler.handler`.
 11. Give the Lambda the following permissions:
