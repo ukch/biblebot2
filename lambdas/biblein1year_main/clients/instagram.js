@@ -14,7 +14,7 @@ const cookiePath = path.join(cookieDir, `${config.username}.json`);
 class Instagram {
     async loadCookies() {
         var s3 = new S3();
-        var response = await s3.getObject({
+        var response = s3.getObject({
             Bucket: config.private_bucket_name,
             Key: `${config.username}.json`,
         }).promise();
@@ -22,6 +22,15 @@ class Instagram {
             await _p(cb => fs.mkdir(cookieDir, cb));
         } catch (e) {
             if (e.code !== "EEXIST") {
+                throw e;
+            }
+        }
+        try {
+            response = await response;
+        } catch (e) {
+            if (e.code === "NoSuchKey") {
+                console.warn("Cookie file not found on S3.");
+            } else {
                 throw e;
             }
         }
