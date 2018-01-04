@@ -8,11 +8,11 @@ This code assumes it will be ran on an AWS Lambda instance, using DynamoDB table
 
 1. Create the above-named DynamoDB tables.
 2. Populate your `readings` table with data in the following format:
-  * Keys: `month` and `day` (numeric).
-  * An entry is as follows: `{data: [{ref: 'Genesis 1:1'}, ...]}`. `ref` is fairly forgiving.
+   * Keys: `month` and `day` (numeric).
+   * An entry is as follows: `{data: [{ref: 'Genesis 1:1'}, ...]}`. `ref` is fairly forgiving.
 3. Populate the `abbreviations` table as necessary. Use the following format:
-  * Keys: `book_short` (string)
-  * An entry is as follows: `{book_short: 'gen', book: 'Genesis'}`. Please note `book_short` should always be lowercase.
+   * Keys: `book_short` (string)
+   * An entry is as follows: `{book_short: 'gen', book: 'Genesis'}`. Please note `book_short` should always be lowercase.
 4. [Correctly configure the AWS CLI.](https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html)
 5. (optional) To pre-populate images (for Instagram posting), run `./scripts/fetch_image_urls_for_month.py`. This fetches images for each ref in the given month from [Faithlife](https://bible.faithlife.com/).
 6. (Instagram) Create an empty JSON file named `[your-instagram-username].json` and upload it to a private bucket on Amazon S3.
@@ -33,8 +33,8 @@ This code assumes it will be ran on an AWS Lambda instance, using DynamoDB table
 9. Cd into `lambdas/biblein1year_main/config.json`, run `npm install`, then run `webpack`. This should create a file `./dist/lambda.zip`
 10. Create your Lambda. When asked for the code, upload the zip file from step 9, and set the handler path to `handler.handler`.
 11. Give the Lambda the following permissions:
-  * The default Lambda permissions (log writing etc.)
-  * DynamoDB: Permission to read both tables.
-  * S3: `getObject` and `putObject` on the JSON file from step 6.
+    * The default Lambda permissions (log writing etc.)
+    * DynamoDB: Permission to read both tables.
+    * S3: `getObject` and `putObject` on the JSON file from step 6.
 12. (optional) Test the Lambda using the `testMode: true` option (or the`--test`flag if running from command line)
 13. (optional) To check for any upcoming concerns over the next 30 days, run `./scripts/find_problems.py`
