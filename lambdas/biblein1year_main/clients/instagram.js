@@ -30,6 +30,7 @@ class Instagram {
         } catch (e) {
             if (e.code === "NoSuchKey") {
                 console.warn("Cookie file not found on S3.");
+                return;
             } else {
                 throw e;
             }
