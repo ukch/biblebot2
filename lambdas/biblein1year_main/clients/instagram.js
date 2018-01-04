@@ -39,8 +39,10 @@ class Instagram {
 
     constructor() {
         const device = new Client.Device(config.username);
-        const storage = new Client.CookieFileStorage(cookiePath);
-        this.session = this.loadCookies().then(Client.Session.create(device, storage, config.username, config.password));
+        this.session = this.loadCookies().then(() => {
+            const storage = new Client.CookieFileStorage(cookiePath);
+            return Client.Session.create(device, storage, config.username, config.password);
+        });
     }
 
     async post(imageUrl, verses, url, hashtags) {
@@ -69,6 +71,9 @@ class Instagram {
     }
 
     static saveCookies() {
+        if (!this.instance) {
+            return Promise.resolve();
+        }
         var s3 = new S3();
         var fileStream = fs.createReadStream(cookiePath);
         return s3.putObject({
