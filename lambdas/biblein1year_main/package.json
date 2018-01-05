@@ -20,7 +20,8 @@
         "quotation": "^1.1.0",
         "redis": "^2.8.0",
         "request": "^2.83.0",
-        "request-promise-native": "^1.0.5"
+        "request-promise-native": "^1.0.5",
+        "tempy": "^0.2.1"
     },
     "devDependencies": {
         "babel-core": "^6.26.0",

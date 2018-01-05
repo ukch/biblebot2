@@ -1,15 +1,14 @@
 const fs = require("fs");
-const path = require("path");
 
 const Client = require("instagram-private-api").V1;
 const request = require("request");
 const S3 = require("aws-sdk").S3;
+const tempy = require("tempy");
 
 const _p = require("../tools")._p;
 const config = require("../config.json").instagram;
 
-const cookieDir = path.join(__dirname, "../cookies/");
-const cookiePath = path.join(cookieDir, `${config.username}.json`);
+const cookiePath = tempy.file({name: `${config.username}.json`});
 
 class Instagram {
     async loadCookies() {
@@ -18,13 +17,6 @@ class Instagram {
             Bucket: config.private_bucket_name,
             Key: `${config.username}.json`,
         }).promise();
-        try {
-            await _p(cb => fs.mkdir(cookieDir, cb));
-        } catch (e) {
-            if (e.code !== "EEXIST") {
-                throw e;
-            }
-        }
         try {
             response = await response;
         } catch (e) {
