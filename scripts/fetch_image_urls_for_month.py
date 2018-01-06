@@ -26,7 +26,7 @@ def fetch_image_urls_for_month(month):
                     reading["ref"], day["day"], month,
                 ))
                 continue
-            if reading["image_url"] != image_url:
+            if reading.get("image_url") != image_url:
                 reading["image_url"] = image_url
                 updated = True
 
