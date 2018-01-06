@@ -99,7 +99,7 @@ async function doInstaPost(item, testMode) {
 }
 
 async function handler(testMode) {
-    var today = new Date();
+    var today = new Date(new Date().toISOString().slice(0, 10)); // midnight
     let counter = 0;
     for (let date of await getRelevantDates(today)) {
         for (let item of await getReadingsForDate(date)) {
