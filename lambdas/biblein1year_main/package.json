@@ -14,7 +14,9 @@
     "author": "Joel Cross",
     "license": "ISC",
     "dependencies": {
+        "aws-sdk": "^2.177.0",
         "dynamodb-marshaler": "^2.0.0",
+        "gm": "^1.23.1",
         "html-to-text": "^3.3.0",
         "instagram-private-api": "^0.6.7",
         "quotation": "^1.1.0",

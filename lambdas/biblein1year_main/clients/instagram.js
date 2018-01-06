@@ -1,6 +1,7 @@
 const fs = require("fs");
 
 const Client = require("instagram-private-api").V1;
+const gm = require("gm").subClass({imageMagick: true});
 const request = require("request");
 const S3 = require("aws-sdk").S3;
 const tempy = require("tempy");
@@ -39,12 +40,14 @@ class Instagram {
     }
 
     async post(imageUrl, verses, url, hashtags) {
-        var imageStream = request(imageUrl)
-            .on("response", response => {
-                if (response.statusCode !== 200) {
-                    throw new Error(response.statusCode, response.toJSON());
-                }
-            });
+        var imageStream = gm(
+            request(imageUrl)
+                .on("response", response => {
+                    if (response.statusCode !== 200) {
+                        throw new Error(response.statusCode, response.toJSON());
+                    }
+                })
+        ).stream("jpg");
         var session = await this.session;
         var upload = await Client.Upload.photo(session, imageStream);
         let message = [
