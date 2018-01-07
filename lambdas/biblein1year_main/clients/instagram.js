@@ -40,16 +40,17 @@ class Instagram {
     }
 
     async post(imageUrl, verses, url, hashtags) {
-        var imageStream = gm(
+        var imageResponse = gm(
             request(imageUrl)
                 .on("response", response => {
                     if (response.statusCode !== 200) {
                         throw new Error(response.statusCode, response.toJSON());
                     }
                 })
-        ).stream("jpg");
+        );
         var session = await this.session;
-        var upload = await Client.Upload.photo(session, imageStream);
+        var imageBuffer = await _p(cb => imageResponse.toBuffer("jpg", cb));
+        var upload = await Client.Upload.photo(session, imageBuffer);
         let message = [
             (await verses).next().value,
             `Read more: ${url}`,
