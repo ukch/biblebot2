@@ -119,7 +119,22 @@ async function handler(testMode) {
     return `Posted ${counter} times`;
 }
 
+var lastReqId;
+
 exports.handler = function(event, context, cb) {
+    // We check if the lambda is being retried.
+    // If that's the case, we kill it
+    // We leverage lambda's quirks:
+    // - lambda's node process reuse which keeps vars instanced
+    // - retried lambdas have the same request id
+    // Hopefully Amz will someday allow us to disable autoretries
+    if (lastReqId && lastReqId === context.awsRequestId) {
+        console.log("Lambda auto retry detected. Aborting.");
+        return context.succeed();
+    } else {
+        lastReqId = context.awsRequestId;
+    };
+
     handler(event.testMode || false).then(msg => cb(null, msg), err => cb(err));
 };
 
@@ -127,7 +142,7 @@ if (!module.parent) {
     var ev = {
         testMode: process.argv.includes("--test"),
     };
-    exports.handler(ev, null, (err, msg) => {
+    exports.handler(ev, {}, (err, msg) => {
         if (err) {
             console.error(err);
             return;
