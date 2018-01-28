@@ -14,12 +14,16 @@ import re
 import boto3
 from dateutil.parser import parse as dateutil_parse
 import redis
+import requests
+import PIL.Image as Image
 
 dynamodb = boto3.resource("dynamodb")
 logger = logging.getLogger(__name__)
 number_regex = re.compile(r"[0-9]")
 
 CONFIG_JSON = "lambdas/biblein1year_main/config.json"
+
+ALLOWED_ASPECT_RATIOS = {0.56, 0.75, 0.8, 1}
 
 
 def get_last_updated():
@@ -35,6 +39,23 @@ def get_relevant_dates(last_updated, days):
     end_date = start_date + (one_day * days)
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
+
+
+class DummyLog:
+    def __init__(self):
+        self.cache = []
+
+    def warn(self, msg):
+        self.cache.append([logging.WARNING, msg])
+
+    def error(self, msg):
+        self.cache.append([logging.ERROR, msg])
+
+    def output(self, date, real_logger):
+        if len(self.cache):
+            print(date)
+            for level, msg in self.cache:
+                real_logger.log(level, msg)
 
 
 abbreviations_cache = set()
@@ -54,6 +75,33 @@ def find_abbreviation(book_short):
         return False
 
 
+def ensure_short_ref(reading, log_func):
+    book_short = number_regex.split(reading["ref"])[0].strip()
+    if not find_abbreviation(book_short):
+        log_func("No short reference found for '{}'".format(book_short))
+        return False
+    return True
+
+
+def check_for_image_url(reading, log_func):
+    if reading.get("image_url") is None:
+        log_func("No image URL for {}".format(reading["ref"]))
+        return False
+    return True
+
+
+def check_image_aspect_ratio(reading, log_func):
+    response = requests.get(reading["image_url"], stream=True)
+    response.raw.decode_content = True
+    img = Image.open(response.raw)
+    x1, x2 = sorted(img.size)
+    ratio = round(x1 / x2, 2)
+    if ratio < 0.78 and ratio not in ALLOWED_ASPECT_RATIOS:
+        log_func(f"Aspect ratio of {ratio} is not supported for ref {reading['ref']}.")
+        return False
+    return True
+
+
 def main():
     try:
         last_updated = get_last_updated()
@@ -68,26 +116,16 @@ def main():
     readings = dynamodb.Table("readings")
 
     for date in get_relevant_dates(last_updated, 30):
-        to_log = []
+        log = DummyLog()
         response = readings.get_item(
             Key={"month": date.month, "day": date.day},
         )
         item = response["Item"]
         for reading in item["data"]:
-            book_short = number_regex.split(reading["ref"])[0].strip()
-            if not find_abbreviation(book_short):
-                to_log.append([
-                    logging.WARNING,
-                    "No short reference found for '{}'".format(book_short),
-                ])
-            if reading.get("image_url") is None:
-                to_log.append([
-                    logging.ERROR, "No image URL for {}".format(reading["ref"])
-                ])
-        if to_log:
-            print(date)
-            for level, msg in to_log:
-                logger.log(level, msg)
+            ensure_short_ref(reading, log.warn)
+            if check_for_image_url(reading, log.error):
+                check_image_aspect_ratio(reading, log.error)
+        log.output(date, logger)
 
 
 if __name__ == "__main__":
