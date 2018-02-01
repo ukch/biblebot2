@@ -48,8 +48,8 @@ class Instagram {
                     }
                 })
         );
-        var session = await this.session;
         var imageBuffer = await _p(cb => imageResponse.toBuffer("jpg", cb));
+        var session = await this.session;
         var upload = await Client.Upload.photo(session, imageBuffer);
         let message = [
             (await verses).next().value,
