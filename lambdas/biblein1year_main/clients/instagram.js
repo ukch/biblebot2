@@ -35,7 +35,7 @@ class Instagram {
         const device = new Client.Device(config.username);
         this.session = this.loadCookies().then(() => {
             const storage = new Client.CookieFileStorage(cookiePath);
-            return Client.Session.create(device, storage, config.username, config.password);
+            return Client.Session.create(device, storage, config.username, Instagram.password);
         });
     }
 

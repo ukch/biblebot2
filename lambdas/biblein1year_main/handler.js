@@ -19,6 +19,7 @@ Process:
 */
 
 const redis = require("redis");
+const prompt = require("password-prompt");
 
 const Instagram = require("./clients/instagram");
 const config = require("./config.json");
@@ -98,9 +99,14 @@ async function doInstaPost(item, testMode) {
     }
 }
 
-async function handler(testMode) {
+async function handler({testMode, promptForPassword}) {
     var today = new Date(new Date().toISOString().slice(0, 10)); // midnight
     let counter = 0;
+    if (promptForPassword) {
+        Instagram.password = await prompt("Please enter Instagram password: ", {method: "hide"});
+    } else {
+        Instagram.password = "dummy"; // unused - we use cookies instead
+    }
     for (let date of await getRelevantDates(today)) {
         for (let item of await getReadingsForDate(date)) {
             await doInstaPost(item, testMode);
@@ -135,12 +141,15 @@ exports.handler = function(event, context, cb) {
         lastReqId = context.awsRequestId;
     };
 
-    handler(event.testMode || false).then(msg => cb(null, msg), err => cb(err));
+    event.testMode = event.testMode || false;
+    event.promptForPassword = event.promptForPassword || false;
+    handler(event).then(msg => cb(null, msg), err => cb(err));
 };
 
 if (!module.parent) {
     var ev = {
         testMode: process.argv.includes("--test"),
+        promptForPassword: process.argv.includes("-p"),
     };
     exports.handler(ev, {}, (err, msg) => {
         if (err) {

@@ -19,6 +19,7 @@
         "gm": "^1.23.1",
         "html-to-text": "^3.3.0",
         "instagram-private-api": "^0.6.7",
+        "password-prompt": "< 1.0.3",
         "quotation": "^1.1.0",
         "redis": "^2.8.0",
         "request": "^2.83.0",
