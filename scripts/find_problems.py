@@ -23,7 +23,7 @@ number_regex = re.compile(r"[0-9]")
 
 CONFIG_JSON = "lambdas/biblein1year_main/config.json"
 
-ALLOWED_ASPECT_RATIOS = {0.56, 0.75, 0.8, 1}
+ALLOWED_ASPECT_RATIOS = {0.52, 0.55, 0.56, 0.69, 0.75, 0.8, 1}
 
 
 def get_last_updated():
@@ -102,7 +102,7 @@ def check_image_aspect_ratio(reading, log_func):
     return True
 
 
-def main():
+def main(days_to_fetch=30):
     try:
         last_updated = get_last_updated()
     except Exception:
@@ -115,7 +115,7 @@ def main():
 
     readings = dynamodb.Table("readings")
 
-    for date in get_relevant_dates(last_updated, 30):
+    for date in get_relevant_dates(last_updated, days_to_fetch):
         log = DummyLog()
         response = readings.get_item(
             Key={"month": date.month, "day": date.day},
@@ -132,4 +132,4 @@ if __name__ == "__main__":
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter("  %(levelname).1s:%(message)s"))
     logger.addHandler(handler)
-    sys.exit(main())
+    sys.exit(main(*[int(a) for a in sys.argv[1:]]))
