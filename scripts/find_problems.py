@@ -23,7 +23,7 @@ number_regex = re.compile(r"[0-9]")
 
 CONFIG_JSON = "lambdas/biblein1year_main/config.json"
 
-ALLOWED_ASPECT_RATIOS = {0.52, 0.55, 0.56, 0.69, 0.75, 0.8, 1}
+ALLOWED_ASPECT_RATIOS = {0.52, 0.55, 0.56, 0.68, 0.69, 0.72, 0.75, 0.8, 1}
 
 
 def get_last_updated():
@@ -94,9 +94,9 @@ def check_image_aspect_ratio(reading, log_func):
     response = requests.get(reading["image_url"], stream=True)
     response.raw.decode_content = True
     img = Image.open(response.raw)
-    x1, x2 = sorted(img.size)
+    x2, x1 = img.size
     ratio = round(x1 / x2, 2)
-    if ratio < 0.78 and ratio not in ALLOWED_ASPECT_RATIOS:
+    if not (0.78 < ratio < 1) and ratio not in ALLOWED_ASPECT_RATIOS:
         log_func(f"Aspect ratio of {ratio} is not supported for ref {reading['ref']}.")
         return False
     return True
