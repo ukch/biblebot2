@@ -23,7 +23,12 @@ number_regex = re.compile(r"[0-9]")
 
 CONFIG_JSON = "lambdas/biblein1year_main/config.json"
 
-ALLOWED_ASPECT_RATIOS = {0.52, 0.55, 0.56, 0.68, 0.69, 0.72, 0.75, 0.8, 1}
+ALLOWED_ASPECT_RATIOS = {
+    0.52, 0.55, 0.56,
+    0.68, 0.69,
+    0.72, 0.75, 0.78,
+    0.8, 1,
+}
 
 
 def get_last_updated():
