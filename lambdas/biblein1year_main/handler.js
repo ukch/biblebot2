@@ -154,7 +154,7 @@ if (!module.parent) {
     exports.handler(ev, {}, (err, msg) => {
         if (err) {
             console.error(err);
-            return;
+            process.exit(1);
         }
         console.log(msg);
     });

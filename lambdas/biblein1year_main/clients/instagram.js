@@ -60,7 +60,7 @@ class Instagram {
         console.log(data.id);
     }
 
-    static post(imageUrl, verses, url, hashtags) {
+    static async post(imageUrl, verses, url, hashtags) {
         if (!this.instance) {
             this.instance = new this();
         }
