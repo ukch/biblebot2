@@ -80,8 +80,24 @@ def find_abbreviation(book_short):
         return False
 
 
+def book_from_ref(ref):
+    """
+    >>> book_from_ref("John 3:16")
+    'John'
+    >>> book_from_ref("1 John 3:16")
+    '1 John'
+    """
+    parts = number_regex.split(ref)
+    book_short = parts[0].strip()
+    if not book_short:
+        book_short = " ".join([
+            number_regex.match(ref).group(), parts[1].strip()
+        ])
+    return book_short
+
+
 def ensure_short_ref(reading, log_func):
-    book_short = number_regex.split(reading["ref"])[0].strip()
+    book_short = book_from_ref(reading["ref"])
     if not find_abbreviation(book_short):
         log_func("No short reference found for '{}'".format(book_short))
         return False

@@ -10,7 +10,7 @@ import requests
 
 dynamodb = boto3.resource("dynamodb")
 
-VERSE_REGEX = re.compile(r"\d?\s?([a-zA-Z ]+)\s?(\d+:?\d*[a-z]?)-?(\d+:?\d*[a-z]?)?")
+VERSE_REGEX = re.compile(r"(\d?\s?[a-zA-Z ]+)\s?(\d+:?\d*[a-z]?)-?(\d+:?\d*[a-z]?)?")
 BIBLE_URL_PATTERN = "http://labs.bible.org/api/?passage={passage}&type=json"
 
 ONE_CHAPTER_BOOKS = frozenset({"Obadiah", "Philemon", "2 John", "3 John", "Jude"})
@@ -33,6 +33,13 @@ class Verse(str):
 
 class VerseRange:
 
+    """
+    >>> VerseRange("John 3:16")
+    <VerseRange: John 3:16>
+    >>> VerseRange("1 John 3:16")
+    <VerseRange: 1 John 3:16>
+    """
+
     def __init__(self, ref_str: str):
         self.str = ref_str
         if ref_str in ONE_CHAPTER_BOOKS:
@@ -41,8 +48,8 @@ class VerseRange:
         if match is None:
             raise re.error(f"'{ref_str}' does not match regex!")
         book, first, last = match.groups()
-        self.first = Verse(book, first)
-        self.last = Verse(book, last) if last else None
+        self.first = Verse(book.strip(), first)
+        self.last = Verse(book.strip(), last) if last else None
 
     def __repr__(self):
         if self.last:
