@@ -23,7 +23,13 @@ function _p(wrappedFunc) {
 }
 
 async function elongateReference(ref) {
-    var bookShort = (ref.split(/[0-9]/)[0]).trim();
+    const regex = /[0-9]/;
+    let parts = ref.split(regex);
+    var bookShort = parts[0].trim();
+    if (!bookShort) {
+        let number = ref.match(regex)[0];
+        bookShort = `${number} ${parts[1].trim()}`;
+    }
     var params = {
         TableName: "abbreviations",
         Key: marshalItem({
@@ -40,7 +46,7 @@ async function elongateReference(ref) {
 }
 
 function getUrl(ref) {
-    ref = ref.replace(/:/g, ".").replace(" ", "");
+    ref = ref.replace(/:/g, ".").replace(/\s/g, "");
     return URL_PATTERN + encodeURIComponent(ref);
 }
 
