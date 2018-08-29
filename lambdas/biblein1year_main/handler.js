@@ -85,9 +85,16 @@ async function doInstaPost(item, testMode) {
     if ("hashtag" in item) {
         hashtags.unshift(item.hashtag);
     }
+    const verse = (await verses).next();
+    const latestPosts = await Instagram.getLatestPosts(3);
+    for (let post of latestPosts) {
+        if (post.message.startsWith(verse.value)) {
+            throw new Error("Duplicate Post");
+        }
+    }
     if (testMode) {
         let message = [
-            (await verses).next().value,
+            verse.value,
             `Read more: ${url}`,
             hashtags.join(" "),
         ].join("\n\n");
@@ -109,7 +116,15 @@ async function handler({testMode, promptForPassword}) {
     }
     for (let date of await getRelevantDates(today)) {
         for (let item of await getReadingsForDate(date)) {
-            await doInstaPost(item, testMode);
+            try {
+                await doInstaPost(item, testMode);
+            } catch (e) {
+                if (e.message === "Duplicate Post") {
+                    console.warn(`Not re-posting for ref ${item.ref}`);
+                    continue;
+                }
+                throw e;
+            }
             counter += 1;
         }
     };

@@ -39,6 +39,27 @@ class Instagram {
         });
     }
 
+    async getLatestPosts(count) {
+        const session = await this.session;
+        const accountId = await session.getAccountId();
+        const feed = new Client.Feed.UserMedia(session, accountId);
+        let objs;
+        try {
+            objs = (await feed.get()).slice(0, count);
+        } catch (e) {
+            if (e.name === "NotFoundError") {
+                return [];
+            }
+            throw e;
+        }
+        return objs.map(obj => {
+            return {
+                message: obj._params.caption,
+                images: obj._params.images,
+            };
+        });
+    }
+
     async post(imageUrl, verses, url, hashtags) {
         var imageResponse = gm(
             request(imageUrl)
@@ -58,6 +79,13 @@ class Instagram {
         ].join("\n\n");
         var data = await Client.Media.configurePhoto(session, upload.params.uploadId, message);
         console.log(data.id);
+    }
+
+    static async getLatestPosts(count) {
+        if (!this.instance) {
+            this.instance = new this();
+        }
+        return this.instance.getLatestPosts(count);
     }
 
     static async post(imageUrl, verses, url, hashtags) {
