@@ -60,7 +60,7 @@ class Instagram {
         });
     }
 
-    async post(imageUrl, verses, url, hashtags) {
+    async post(imageUrl, verse, url, hashtags) {
         var imageResponse = gm(
             request(imageUrl)
                 .on("response", response => {
@@ -73,7 +73,7 @@ class Instagram {
         var session = await this.session;
         var upload = await Client.Upload.photo(session, imageBuffer);
         let message = [
-            (await verses).next().value,
+            verse.value,
             `Read more: ${url}`,
             hashtags.join(" "),
         ].join("\n\n");

@@ -102,7 +102,7 @@ async function doInstaPost(item, testMode) {
         console.log(message);
         console.log("---");
     } else {
-        await Instagram.post(image, verses, url, hashtags);
+        await Instagram.post(image, verse, url, hashtags);
     }
 }
 
