@@ -5,6 +5,7 @@ Find and diagnose any problems coming up in the next 30 days.
 """
 
 from datetime import timedelta
+import enum
 import sys
 import json
 import logging
@@ -31,6 +32,22 @@ ALLOWED_ASPECT_RATIOS = {
 }
 
 
+class Warnings(enum.Enum):
+    NO_SHORT_REF = "No short reference found for '{book}'"
+
+
+class Errors(enum.Enum):
+    IMAGE_URL_MISSING = "No image URL for {ref}"
+    UNSUPPORTED_ASPECT_RATIO = (
+        "Aspect ratio of {ratio} is not supported for ref {ref}"
+    )
+
+
+def _log(log_func, named_warning_or_error, **params):
+    msg = named_warning_or_error.value.format(**params)
+    return log_func(msg, extra={"code": named_warning_or_error.name})
+
+
 def get_last_updated():
     with open(CONFIG_JSON) as fh:
         config = json.load(fh)
@@ -50,17 +67,17 @@ class DummyLog:
     def __init__(self):
         self.cache = []
 
-    def warn(self, msg):
-        self.cache.append([logging.WARNING, msg])
+    def warning(self, msg, **kw):
+        self.cache.append([logging.WARNING, msg, kw])
 
-    def error(self, msg):
-        self.cache.append([logging.ERROR, msg])
+    def error(self, msg, **kw):
+        self.cache.append([logging.ERROR, msg, kw])
 
     def output(self, date, real_logger):
         if len(self.cache):
             print(date)
-            for level, msg in self.cache:
-                real_logger.log(level, msg)
+            for level, msg, kw in self.cache:
+                real_logger.log(level, msg, **kw)
 
 
 abbreviations_cache = set()
@@ -99,14 +116,14 @@ def book_from_ref(ref):
 def ensure_short_ref(reading, log_func):
     book_short = book_from_ref(reading["ref"])
     if not find_abbreviation(book_short):
-        log_func("No short reference found for '{}'".format(book_short))
+        _log(log_func, Warnings.NO_SHORT_REF, book=book_short)
         return False
     return True
 
 
 def check_for_image_url(reading, log_func):
     if reading.get("image_url") is None:
-        log_func("No image URL for {}".format(reading["ref"]))
+        _log(log_func, Errors.IMAGE_URL_MISSING, ref=reading["ref"])
         return False
     return True
 
@@ -118,7 +135,7 @@ def check_image_aspect_ratio(reading, log_func):
     x2, x1 = img.size
     ratio = round(x1 / x2, 2)
     if not (0.78 < ratio < 1) and ratio not in ALLOWED_ASPECT_RATIOS:
-        log_func(f"Aspect ratio of {ratio} is not supported for ref {reading['ref']}.")
+        _log(log_func, Errors.UNSUPPORTED_ASPECT_RATIO, ratio=ratio, ref=reading["ref"])
         return False
     return True
 
@@ -143,7 +160,7 @@ def main(days_to_fetch=30):
         )
         item = response["Item"]
         for reading in item["data"]:
-            ensure_short_ref(reading, log.warn)
+            ensure_short_ref(reading, log.warning)
             if check_for_image_url(reading, log.error):
                 check_image_aspect_ratio(reading, log.error)
         log.output(date, logger)
@@ -151,6 +168,6 @@ def main(days_to_fetch=30):
 
 if __name__ == "__main__":
     handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("  %(levelname).1s:%(message)s"))
+    handler.setFormatter(logging.Formatter("  %(levelname).1s:%(code)s:%(message)s"))
     logger.addHandler(handler)
     sys.exit(main(*[int(a) for a in sys.argv[1:]]))
