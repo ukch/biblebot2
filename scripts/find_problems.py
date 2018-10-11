@@ -26,7 +26,7 @@ CONFIG_JSON = "lambdas/biblein1year_main/config.json"
 
 ALLOWED_ASPECT_RATIOS = {
     0.52, 0.55, 0.56, 0.59,
-    0.60, 0.68, 0.69,
+    0.60, 0.67, 0.68, 0.69,
     0.71, 0.72, 0.74, 0.75, 0.78,
     0.80, 1,
 }
