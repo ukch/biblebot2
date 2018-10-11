@@ -25,8 +25,11 @@ const Instagram = require("./clients/instagram");
 const config = require("./config.json");
 const tools = require("./tools");
 
-async function getRelevantDates(today) {
+async function getRelevantDates(today, forceToday = false) {
     const redisClient = redis.createClient(config.redis_url);
+    if (forceToday) {
+        return [today];
+    }
     try {
         var lastUpdated = new Date(
             await tools._p(cb => redisClient.get("last_updated_date", cb))
@@ -106,7 +109,7 @@ async function doInstaPost(item, testMode) {
     }
 }
 
-async function handler({testMode, promptForPassword}) {
+async function handler({testMode, forceToday, promptForPassword}) {
     var today = new Date(new Date().toISOString().slice(0, 10)); // midnight
     let counter = 0;
     if (promptForPassword) {
@@ -114,7 +117,7 @@ async function handler({testMode, promptForPassword}) {
     } else {
         Instagram.password = "dummy"; // unused - we use cookies instead
     }
-    for (let date of await getRelevantDates(today)) {
+    for (let date of await getRelevantDates(today, forceToday)) {
         for (let item of await getReadingsForDate(date)) {
             try {
                 await doInstaPost(item, testMode);
@@ -157,6 +160,7 @@ exports.handler = function(event, context, cb) {
     };
 
     event.testMode = event.testMode || false;
+    event.forceToday = event.forceToday || false;
     event.promptForPassword = event.promptForPassword || false;
     handler(event).then(msg => cb(null, msg), err => cb(err));
 };
@@ -164,6 +168,7 @@ exports.handler = function(event, context, cb) {
 if (!module.parent) {
     var ev = {
         testMode: process.argv.includes("--test"),
+        forceToday: process.argv.includes("-f"),
         promptForPassword: process.argv.includes("-p"),
     };
     exports.handler(ev, {}, (err, msg) => {
