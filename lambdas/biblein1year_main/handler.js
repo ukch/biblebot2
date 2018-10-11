@@ -50,7 +50,7 @@ async function getReadingsForDate(date) {
     var params = {
         Key: tools.marshalItem({
             month: (date.getMonth() + 1),
-            day: date.getDate(),
+            day: date.getUTCDate(),
         }),
         TableName: "readings",
     };
